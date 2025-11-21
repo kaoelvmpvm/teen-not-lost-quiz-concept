@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>青春不迷路，幸福不MISS小測驗</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+    }
+
+    .quiz-container {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 16px;
+      max-width: 720px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      margin: 0 0 16px 0;
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+    }
+
+    .progress {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .question {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    @media (min-width: 720px) {
+      .options {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .option-btn {
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .option-label {
+      font-weight: 600;
+      color: #555;
+      flex-shrink: 0;
+    }
+
+    .option-text {
+      flex: 1;
+      color: #333;
+    }
+
+    .option-btn:hover:not(.disabled) {
+      background: #f0f7ff;
+      border-color: #c5ddff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .option-btn.disabled {
+      cursor: default;
+      opacity: 0.9;
+    }
+
+    .option-btn.correct {
+      background: #e6f6ec;
+      border-color: #5cb85c;
+    }
+
+    .option-btn.incorrect {
+      background: #fdecea;
+      border-color: #f0a19a;
+    }
+
+    .feedback {
+      min-height: 40px;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+    }
+
+    .feedback-message {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .feedback-message.correct {
+      color: #3c763d;
+    }
+
+    .feedback-message.incorrect {
+      color: #a94442;
+    }
+
+    .feedback-detail {
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .next-btn, .restart-btn {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .next-btn {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+
+    .next-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .next-btn:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    }
+
+    .restart-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .restart-btn:hover {
+      background: #d1d5db;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .summary {
+      display: none;
+      text-align: center;
+    }
+
+    .summary-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .summary-stats {
+      margin-bottom: 12px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>青春不迷路，幸福不MISS小測驗</h1>
+    <p class="subtitle">檢視你對性誘惑地雷、青春期懷孕風險與自我保護行動的理解。</p>
+
+    <!-- 測驗區 -->
+    <div id="quiz-area">
+      <div class="progress" id="progress"></div>
+      <div class="question" id="question"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="footer">
+        <div></div>
+        <button id="next-btn" class="next-btn" disabled>下一題 ▶</button>
+      </div>
+    </div>
+
+    <!-- 結果區 -->
+    <div id="summary-area" class="summary">
+      <div class="summary-title">本題組作答完成！</div>
+      <div class="summary-stats" id="summary-stats"></div>
+      <button id="restart-btn" class="restart-btn">再玩一次這一組</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== 「青春不迷路，幸福不MISS小測驗」觀念題 =====
+    const questions = [
+      {
+        text: "1. 「氣氛催化雷」這種性誘惑情境常見的特徵是什麼？",
+        options: [
+          "兩人在公開場合吵架，彼此情緒緊繃且充滿衝突。",
+          "兩人獨處在昏暗安靜的空間，伴隨浪漫情境與配樂。",
+          "一群同學在教室裡討論考試成績與讀書方法。",
+          "家人一起外出用餐，在明亮餐廳聊天分享近況。"
+        ],
+        correctIndex: 1,
+        explanation: "「氣氛催化雷」指的是環境氛圍（昏暗、安靜、浪漫、配樂）強烈推動情緒與衝動的情境，讓人比較容易順著氣氛做出沒有想清楚的親密行為決定。"
+      },
+      {
+        text: "2. 下列哪一句話最符合「愛我情勒雷」中常見的說法？",
+        options: [
+          "「如果你真的愛我，就要把讀書時間都拿來陪我。」",
+          "「如果你真的愛我，就要馬上跟我在網路上公開關係。」",
+          "「如果你真的愛我，就要給我性行為來證明你的感情。」",
+          "「如果你真的愛我，就要常常幫我整理功課與作業。」"
+        ],
+        correctIndex: 2,
+        explanation: "「愛我情勒雷」常用「如果你愛我，就要……」這種話，逼對方用性行為來證明感情，把愛變成可以用行為打勾的考題，是一種情緒勒索。"
+      },
+      {
+        text: "3. 「虛幻桃色雷」主要提醒青少年注意哪一種風險？",
+        options: [
+          "與家人外出旅遊時，容易因期待過高而失望。",
+          "網路戀情中，陌生人以甜言蜜語與曖昧邀約取得信任。",
+          "同學之間為了社團比賽而產生的競爭與比較壓力。",
+          "考試前因讀書過度而產生的焦慮與睡眠不足問題。"
+        ],
+        correctIndex: 1,
+        explanation: "「虛幻桃色雷」聚焦在網路世界的桃色陷阱：對方用曖昧、關心、甜言蜜語建立信任，實際身分與動機卻不清楚，容易埋下被利用或受害的風險。"
+      },
+      {
+        text: "4. 關於「好奇爆棚雷」的說明，下列何者較為正確？",
+        options: [
+          "只是一時好奇試試看，幾乎不會帶來任何後果。",
+          "因為好奇他人口中的感覺而想嘗試性行為，可能忽略風險。",
+          "只要雙方年齡相近，就不用擔心懷孕或感染性病。",
+          "只要事後不再聯絡，就能完全避免心理上的影響。"
+        ],
+        correctIndex: 1,
+        explanation: "「好奇爆棚雷」指的是被「想試試看」、「聽說很舒服」這類想像推著走，卻沒有同時把懷孕、性病、心理壓力等可能後果考慮進去。"
+      },
+      {
+        text: "5. 「酒精／藥物助燃雷」最大問題在於什麼？",
+        options: [
+          "只會讓人比較健談，反而較容易溝通彼此需求。",
+          "讓人放鬆心情，因此更能冷靜評估性行為的風險。",
+          "容易讓人意識不清，在模糊狀態下做出不理性的性決定。",
+          "只影響聚會氣氛，不會和性行為的選擇有任何關聯。"
+        ],
+        correctIndex: 2,
+        explanation: "酒精與成癮物質會降低大腦判斷力、抑制力與警覺心，讓人更容易在不清醒、不完全同意或事後後悔的情況下，做出關於身體與性的重大決定。"
+      },
+      {
+        text: "6. 懶人包指出，青少女在青春期懷孕時較可能面臨的身體風險是？",
+        options: [
+          "妊娠貧血與高血壓風險增加，並提高早產或難產的機率。",
+          "只會比成年人更健康，因為年輕身體恢復力較好。",
+          "完全不影響身體狀況，只是多了一段特別的人生經驗。",
+          "只會影響外表體重改變，不會影響任何內在健康。"
+        ],
+        correctIndex: 0,
+        explanation: "青春期身體尚未完全成熟，若此時懷孕，較容易出現妊娠貧血、高血壓、早產、難產等風險，對自己與胎兒的健康都較不利。"
+      },
+      {
+        text: "7. 關於青少年非預期懷孕對心理的影響，下列何者最恰當？",
+        options: [
+          "多半只會感到驚喜，很快就能適應新的身分角色。",
+          "可能產生焦慮、自責、恐懼等情緒，學業與夢想被迫改變。",
+          "只要對方願意負責，就完全不會感到任何壓力。",
+          "只要不告訴家人，心理壓力通常會自然消失。"
+        ],
+        correctIndex: 1,
+        explanation: "非預期懷孕常伴隨「要不要生」、「要不要說」、「未來怎麼辦」等壓力，容易出現焦慮、自責與害怕，也可能影響升學與生涯規劃。"
+      },
+      {
+        text: "8. 應對性誘惑時，「堅守幸福結界」最重要的行動是？",
+        options: [
+          "把所有決定交給對方，只要維持感情就好。",
+          "清楚思考自己的底線，並勇於表達同意或拒絕的立場。",
+          "順著當下氣氛發展，不需要事前設想太多情況。",
+          "只要在事後說明原因，就不需要事前說明界線。"
+        ],
+        correctIndex: 1,
+        explanation: "「堅守幸福結界」指的是先想好自己的界線與底線，並在互動中清楚說出來，讓「要或不要」、「到哪裡就停」變成可以溝通的內容，而不是被動跟著走。"
+      },
+      {
+        text: "9. 關於保險套的使用，下列哪一項與懶人包的觀點相符？",
+        options: [
+          "使用保險套只是多此一舉，無關責任與尊重。",
+          "全程、正確使用保險套可降低非預期懷孕與性病風險。",
+          "只在第一次發生性行為時使用，之後就可以省略。",
+          "若對方不願意使用，就應該立刻妥協以免破壞感情。"
+        ],
+        correctIndex: 1,
+        explanation: "懶人包強調，負責任的性行為一定會考慮避孕與性病風險，全程、正確使用保險套是保護自己與對方的重要做法，也是一種尊重彼此健康的表現。"
+      },
+      {
+        text: "10. 當青少年擔心可能懷孕或感染性病，心理壓力很大時，較合適的做法是？",
+        options: [
+          "完全不去面對，假裝事情沒有發生並等待時間過去。",
+          "只詢問同學的經驗，不需要向大人或專業人員求助。",
+          "善用驗孕棒、就醫檢查，並向可信任的大人與專業機構求援。",
+          "把狀況全部發在社群媒體上，請網友幫忙提供意見。"
+        ],
+        correctIndex: 2,
+        explanation: "當有懷孕或性病風險時，最重要的是確認事實（例如使用驗孕棒、就醫檢查），並儘早尋求專業與可信任大人的協助，而不是迴避或只依賴網友意見。"
+      }
+    ];
+
+    // ===== 主要程式邏輯 =====
+    let currentIndex = 0;
+    let correctCount = 0;
+    let answered = false;
+
+    const progressEl = document.getElementById("progress");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("next-btn");
+    const quizArea = document.getElementById("quiz-area");
+    const summaryArea = document.getElementById("summary-area");
+    const summaryStatsEl = document.getElementById("summary-stats");
+    const restartBtn = document.getElementById("restart-btn");
+
+    function renderQuestion() {
+      const q = questions[currentIndex];
+      answered = false;
+      nextBtn.disabled = true;
+      feedbackEl.innerHTML = "";
+
+      progressEl.textContent = `第 ${currentIndex + 1} 題，共 ${questions.length} 題`;
+      questionEl.textContent = q.text;
+
+      optionsEl.innerHTML = "";
+      const labels = ["A", "B", "C", "D"];
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.dataset.index = idx;
+
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "option-label";
+        labelSpan.textContent = labels[idx] + ".";
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "option-text";
+        textSpan.textContent = opt;
+
+        btn.appendChild(labelSpan);
+        btn.appendChild(textSpan);
+
+        btn.addEventListener("click", () => handleAnswer(idx));
+        optionsEl.appendChild(btn);
+      });
+
+      if (currentIndex === questions.length - 1) {
+        nextBtn.textContent = "看結果 ▶";
+      } else {
+        nextBtn.textContent = "下一題 ▶";
+      }
+    }
+
+    function handleAnswer(selectedIndex) {
+      if (answered) return;
+      answered = true;
+
+      const q = questions[currentIndex];
+      const buttons = optionsEl.querySelectorAll(".option-btn");
+      buttons.forEach(btn => {
+        btn.classList.add("disabled");
+        const idx = Number(btn.dataset.index);
+        if (idx === q.correctIndex) {
+          btn.classList.add("correct");
+        }
+      });
+
+      const selectedBtn = optionsEl.querySelector(`.option-btn[data-index="${selectedIndex}"]`);
+
+      const isCorrect = selectedIndex === q.correctIndex;
+      if (isCorrect) {
+        correctCount += 1;
+        selectedBtn.classList.add("correct");
+      } else {
+        selectedBtn.classList.add("incorrect");
+      }
+
+      const msg = document.createElement("div");
+      msg.className = "feedback-message " + (isCorrect ? "correct" : "incorrect");
+      msg.textContent = isCorrect ? "✓ 回答正確！" : "✗ 回答不正確。";
+
+      const detail = document.createElement("div");
+      detail.className = "feedback-detail";
+      detail.textContent = q.explanation;
+
+      feedbackEl.innerHTML = "";
+      feedbackEl.appendChild(msg);
+      feedbackEl.appendChild(detail);
+
+      nextBtn.disabled = false;
+    }
+
+    function showSummary() {
+      const total = questions.length;
+      const wrong = total - correctCount;
+      const rate = Math.round((correctCount / total) * 100);
+
+      quizArea.classList.add("hidden");
+      summaryArea.style.display = "block";
+
+      summaryStatsEl.innerHTML =
+        `本題組共 ${total} 題，你答對 <strong>${correctCount}</strong> 題，` +
+        `答錯 <strong>${wrong}</strong> 題，正確率約為 <strong>${rate}%</strong>。<br>` +
+        (rate === 100
+          ? "你的判斷非常穩健，對性誘惑地雷與自我保護的觀念非常清楚！"
+          : rate >= 70
+          ? "表現很棒，再看看出錯的題目，會讓你的「青春防護罩」更升級。"
+          : "沒關係，這份小測驗是在幫你找到可以再加強的地方，搭配懶人包慢慢補起來就很好。");
+    }
+
+    nextBtn.addEventListener("click", () => {
+      if (currentIndex < questions.length - 1) {
+        currentIndex += 1;
+        renderQuestion();
+      } else {
+        showSummary();
+      }
+    });
+
+    restartBtn.addEventListener("click", () => {
+      currentIndex = 0;
+      correctCount = 0;
+      summaryArea.style.display = "none";
+      quizArea.classList.remove("hidden");
+      renderQuestion();
+    });
+
+    // 初始化
+    renderQuestion();
+  </script>
+</body>
+</html>
